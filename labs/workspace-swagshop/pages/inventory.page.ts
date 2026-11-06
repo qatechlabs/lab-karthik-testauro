@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 
 export class InventoryPage {
   readonly title;
@@ -10,12 +10,18 @@ export class InventoryPage {
     this.badge = page.getByTestId('shopping-cart-badge');
   }
 
+  async goto() {
+    await this.page.goto('/inventory');
+  }
+
   private card(name: string) {
     return this.items.filter({ hasText: name });
   }
 
   async addToCart(name: string) {
-    await this.card(name).getByRole('button', { name: 'Add to cart' }).click();
+    const card = this.card(name);
+    await card.getByRole('button', { name: 'Add to cart' }).click();
+    await expect(card.getByRole('button', { name: 'Remove' })).toBeVisible(); // the cart call has completed
   }
 
   async sortBy(value: 'az' | 'za' | 'lohi' | 'hilo') {

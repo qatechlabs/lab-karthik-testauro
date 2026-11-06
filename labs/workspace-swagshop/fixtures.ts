@@ -2,11 +2,15 @@ import { test as base } from '@playwright/test';
 import { LoginPage } from './pages/login.page';
 import { InventoryPage } from './pages/inventory.page';
 import { CartPage } from './pages/cart.page';
+import { ShopApi } from './api/shop.api';
 import { users } from './data/users';
 
 type Pages = { login: LoginPage; inventory: InventoryPage; cart: CartPage };
 
-export const test = base.extend<{ app: Pages; loggedIn: Pages }>({
+export const test = base.extend<{ app: Pages; loggedIn: Pages; api: ShopApi }>({
+  api: async ({ request }, use) => {
+    await use(new ShopApi(request));
+  },
   app: async ({ page }, use) => {
     const app = { login: new LoginPage(page), inventory: new InventoryPage(page), cart: new CartPage(page) };
     await app.login.goto();
