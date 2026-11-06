@@ -10,5 +10,5 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
-  reporter: process.env.CI ? [['list'], ['json', { outputFile: 'results.json' }], ['html', { open: 'never' }]] : 'list',
+  reporter: process.env.CI ? [['list'], ['json', { outputFile: 'results.json' }], ['html', { open: 'never' }], ['./lab-reporter.js']] : 'list',
 });
