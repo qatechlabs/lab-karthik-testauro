@@ -15,7 +15,7 @@ test.describe('Shopping @regression', () => {
   test('sorting low to high orders prices ascending', async ({ loggedIn: app }) => {
     await app.inventory.sortBy('lohi');
     const prices = await app.inventory.prices();
-    expect(prices).toHaveLength(6);
+    expect(prices).toHaveLength(12);
     expect(prices).toEqual([...prices].sort((a, b) => a - b));
   });
 });
