@@ -1,4 +1,4 @@
-# lab-runner: v4 (managed by QA Interview Ready; edits are replaced before each run)
+# lab-runner: v5 (managed by QA Interview Ready; edits are replaced before each run)
 name: Lab run
 
 on:
