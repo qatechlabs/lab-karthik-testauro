@@ -1,4 +1,4 @@
-# lab-runner: v3 (managed by QA Interview Ready; edits are replaced before each run)
+# lab-runner: v4 (managed by QA Interview Ready; edits are replaced before each run)
 name: Lab run
 
 on:
@@ -35,7 +35,7 @@ jobs:
         if: inputs.app != ''
         run: |
           curl -fsSL "${{ inputs.baseURL }}/index.html" -o app.html
-          node lab-serve.js app.html > serve.log 2>&1 &
+          LAB_API_ORIGIN="$(node -e 'console.log(new URL(process.argv[1]).origin)' "${{ inputs.baseURL }}")" LAB_APP="${{ inputs.app }}" node lab-serve.js app.html > serve.log 2>&1 &
           for i in 1 2 3 4 5 6 7 8 9 10; do curl -fs http://localhost:8080/ > /dev/null && break; sleep 1; done
           echo "BASE_URL=http://localhost:8080" >> "$GITHUB_ENV"
           echo "LAB_BASE_URL=http://localhost:8080" >> "$GITHUB_ENV"
