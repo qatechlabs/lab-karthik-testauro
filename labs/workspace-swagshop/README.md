@@ -1,22 +1,13 @@
 # SwagShop automation framework
 
-Playwright + TypeScript framework for the SwagShop practice store.
+Your framework for the SwagShop practice store (Saucedemo-style). Build it the way you would for a client:
 
-## Structure
+- `playwright.config.ts`: testDir, baseURL from `process.env.BASE_URL`, retries, reporter, trace on failure
+- `pages/`: one class per page or component
+- `fixtures.ts`: `test.extend` with the objects your tests need
+- `data/` or `utils/`: users, products, helpers
+- `tests/`: specs that read like test cases, grouped with `test.describe` or tagged `@smoke`
 
-- `playwright.config.ts`: base URL from `BASE_URL`, retries and HTML report on CI, trace on failure
-- `pages/`: page objects, one class per page; all locators live here
-- `fixtures.ts`: `test.extend` providing ready page objects (`app`) and a logged-in state
-- `data/`: users and test data, unique per run where the app keeps state
-- `tests/`: specs grouped by feature and tagged `@smoke` / `@regression`
+Users: standard_user, locked_out_user, problem_user, performance_glitch_user / secret_sauce. Runs in the browser and on GitHub Actions.
 
-## Run
-
-```bash
-npm install
-npx playwright install chromium
-npx playwright test                      # everything
-npx playwright test --grep @smoke        # smoke only
-BASE_URL=https://staging.example.com npx playwright test
-npx playwright show-report
-```
+<!-- Replace this README with real install/run instructions. The rubric checks that it mentions how to run the suite. -->
