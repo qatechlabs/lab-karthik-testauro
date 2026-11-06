@@ -1,4 +1,4 @@
-# lab-runner: v2 (managed by QA Interview Ready; edits are replaced before each run)
+# lab-runner: v3 (managed by QA Interview Ready; edits are replaced before each run)
 name: Lab run
 
 on:
@@ -10,6 +10,10 @@ on:
       baseURL:
         description: "Site under test"
         required: true
+      app:
+        description: "Practice app to serve locally (swagshop, peopledesk, trendkart) or empty for a real site"
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -25,22 +29,38 @@ jobs:
           node-version: 20
       - run: npm install --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
+      - name: Serve the practice app
+        # Practice apps are single-file and route by hash, so the run gets its own copy at http://localhost:8080
+        # and page.goto('/') lands on the app exactly as it does in the browser lab.
+        if: inputs.app != ''
+        run: |
+          curl -fsSL "${{ inputs.baseURL }}/index.html" -o app.html
+          node lab-serve.js app.html > serve.log 2>&1 &
+          for i in 1 2 3 4 5 6 7 8 9 10; do curl -fs http://localhost:8080/ > /dev/null && break; sleep 1; done
+          echo "BASE_URL=http://localhost:8080" >> "$GITHUB_ENV"
+          echo "LAB_BASE_URL=http://localhost:8080" >> "$GITHUB_ENV"
       - name: Run the lab
         # A lab folder with its own playwright.config.ts (framework workspaces) runs with that config;
-        # the others use the root config with LAB_DIR as testDir.
+        # the others use the root config with LAB_DIR as testDir. Tracing is on for the evidence document.
         run: |
           CONFIG="playwright.config.ts"
           if [ -f "$LAB_DIR/playwright.config.ts" ]; then CONFIG="$LAB_DIR/playwright.config.ts"; fi
-          echo "Using $CONFIG"
-          npx playwright test --config "$CONFIG" --reporter="list,json,html,$GITHUB_WORKSPACE/lab-reporter.js"
+          echo "Using $CONFIG against $BASE_URL"
+          npx playwright test --config "$CONFIG" --trace on --reporter="list,json,html,$GITHUB_WORKSPACE/lab-reporter.js"
         env:
           CI: "1"
           LAB_DIR: ${{ inputs.lab }}
-          LAB_BASE_URL: ${{ inputs.baseURL }}
-          BASE_URL: ${{ inputs.baseURL }}
+          LAB_BASE_URL: ${{ env.LAB_BASE_URL || inputs.baseURL }}
+          BASE_URL: ${{ env.BASE_URL || inputs.baseURL }}
           PLAYWRIGHT_JSON_OUTPUT_NAME: ${{ github.workspace }}/results.json
           PLAYWRIGHT_HTML_OUTPUT_DIR: ${{ github.workspace }}/playwright-report
           PLAYWRIGHT_HTML_OPEN: never
+        continue-on-error: true
+      - name: Collect evidence screenshots
+        if: always()
+        run: node lab-evidence.js
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: ${{ github.workspace }}/results.json
         continue-on-error: true
       - uses: actions/upload-artifact@v4
         if: always()
@@ -49,5 +69,7 @@ jobs:
           path: |
             results.json
             assertions.json
+            evidence.json
+            evidence
             playwright-report
           retention-days: 7
