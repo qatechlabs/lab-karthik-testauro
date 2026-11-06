@@ -1,0 +1,41 @@
+name: Lab run
+
+on:
+  workflow_dispatch:
+    inputs:
+      lab:
+        description: "Lab folder, for example labs/swagshop-login"
+        required: true
+      baseURL:
+        description: "Site under test"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Run the lab
+        run: npx playwright test
+        env:
+          CI: "1"
+          LAB_DIR: ${{ inputs.lab }}
+          LAB_BASE_URL: ${{ inputs.baseURL }}
+        continue-on-error: true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: results
+          path: |
+            results.json
+            playwright-report
+          retention-days: 7
